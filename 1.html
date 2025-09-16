@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Live HTML Editor</title>
+  <link rel="astro site icon" type="png" href="1.png">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+    #editor {
+      width: 75%;
+      height: 100%;
+    }
+    #preview {
+      width: 25%;
+      height: 100%;
+      border: none;
+    }
+    #ad-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      display: none; /* শুরুতে লুকানো থাকবে */
+    }
+    #ad-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    #point-display {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 5px 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 5px;
+      font-weight: bold;
+      z-index: 10000;
+    }
+    #close-ad {
+        margin-top: 15px;
+        padding: 10px 20px;
+        border: none;
+        background-color: #007BFF;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4051582390407475"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="point-display">পয়েন্ট: <span id="points">0</span></div>
+  <div id="editor"></div>
+  <iframe id="preview"></iframe>
+  <div id="ad-container">
+    <div id="ad-content">
+      <p>বিজ্ঞাপন লোড হচ্ছে...</p>
+      <ins class="adsbygoogle"
+           style="display:block; text-align:center;"
+           data-ad-layout="in-article"
+           data-ad-format="fluid"
+           data-ad-client="ca-pub-4051582390407475"
+           data-ad-slot="7685409437"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+      <button id="close-ad">বিজ্ঞাপন বন্ধ করুন</button>
+    </div>
+  </div>
+
+  <script>
+    // Monaco Editor লোড করা
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs' }});
+    require(["vs/editor/editor.main"], function () {
+      const defaultCode = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Preview</title>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; text-align: center; padding: 20px; }
+    h1 { color: #567890; }
+  </style>
+</head>
+<body>
+  <h1>হ্যালো, এটি রিয়েল টাইম প্রিভিউ!</h1>
+  <p>আপনি কোড লিখলেই এখানে পরিবর্তন হবে।</p>
+</body>
+</html>`;
+
+      const editor = monaco.editor.create(document.getElementById('editor'), {
+        value: defaultCode,
+        language: "html",
+        theme: "vs-dark",
+        automaticLayout: true,
+        fontSize: 16,
+        minimap: { enabled: false }
+      });
+
+      const preview = document.getElementById("preview");
+      const adContainer = document.getElementById("ad-container");
+      const closeAdButton = document.getElementById("close-ad");
+      const pointsDisplay = document.getElementById("points");
+
+      let points = 5; // কোড রান হওয়ার সাথে সাথে পয়েন্ট 5 থেকে শুরু হবে
+      let pointDecrementTimer;
+
+      function updatePreview() {
+        preview.srcdoc = editor.getValue();
+      }
+
+      function showAd() {
+        adContainer.style.display = "flex";
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      }
+
+      function hideAd() {
+        adContainer.style.display = "none";
+        points = 5; // বিজ্ঞাপন বন্ধ করলে পয়েন্ট 5-এ সেট হবে
+        updatePointsDisplay();
+      }
+
+      function updatePointsDisplay() {
+        pointsDisplay.textContent = points;
+      }
+
+      function startPointDecrement() {
+        pointDecrementTimer = setInterval(() => {
+          if (points > 0) {
+            points -= 1;
+            updatePointsDisplay();
+          } else {
+            // পয়েন্ট 0 হলে ফুল-স্ক্রিন বিজ্ঞাপন দেখাবে
+            showAd();
+            // টাইমার বন্ধ করবে যাতে একাধিক বিজ্ঞাপন না আসে
+            clearInterval(pointDecrementTimer);
+          }
+        }, 60000); // প্রতি ১ মিনিট (60000 ms) পর পর
+      }
+
+      // প্রথমবার কোড লোড হলে বিজ্ঞাপন দেখাবে
+      window.onload = function() {
+          showAd();
+      };
+
+      closeAdButton.addEventListener("click", () => {
+          hideAd();
+          // বিজ্ঞাপন বন্ধ করার পর আবার টাইমার শুরু করবে
+          startPointDecrement();
+      });
+
+      // প্রথমবার প্রিভিউ আপডেট করা
+      updatePreview();
+    });
+  </script>
+</body>
+</html>
